@@ -1,9 +1,5 @@
 from django.db import models
-from django.conf import settings
-from django.contrib.auth import get_user_model
-# import datetime
-# Create your models here.
-User = get_user_model
+from users.models import User
 
 
 class Genres(models.Model):
@@ -23,13 +19,18 @@ class Category(models.Model):
 class Titles(models.Model):
     title = models.CharField(max_length=32, unique=True)
     slug = models.SlugField(unique=True)
-    # genres = models.ForeignKey(
-    #     Genres,
-    #     # on_delete=models.CASCADE
-    # )
+    genres = models.ForeignKey(
+        Genres,
+        on_delete=models.CASCADE
+    )
     category = models.ForeignKey(
         Category,
         on_delete=models.CASCADE,
+    )
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='titles'
     )
 
 
@@ -51,26 +52,20 @@ class Review(models.Model):
     # Отзыв
     text = models.TextField()
     # Юзер , нужно изменить!
-    # user = models.ForeignKey(
-    #     settings.AUTH_USER_MODEL,
-    #     default=1,
-    #     on_delete=models.CASCADE
-    # )
-    # Дата
-    # pub_date = models.DateTimeField(
-    #     auto_now_add=True,
-    #     verbose_name='Publication Date'
-    # )
-    # publish = models.DateTimeField(default=datetime.timezone.now)   # время когда опубликовано
+    user = models.ForeignKey(
+        User,
+        # default=1,
+        on_delete=models.CASCADE
+    )
     created = models.DateTimeField(auto_now_add=True)   # время создания
     updated = models.DateTimeField(auto_now=True)   # время редактирования
     # Коммент
     comment = models.TextField(max_length=1024)
-    # Оценка от 1 до 5
+    # Оценка от 1 до 10
     value = models.IntegerField(choices=RATING_CHOICES, default=1)
 
-    # def __str__(self):
-    #     return '{0}/{1} - {2}'.format(self.book.title, self.user.username, self.value)
+    def __str__(self):
+        return '{0}/{1} - {2}'.format(self.book.title, self.user.username, self.value)
 
     class Meta:
         verbose_name = "Titles Review"
