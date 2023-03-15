@@ -3,10 +3,14 @@ from users.models import User
 
 
 class Genres(models.Model):
-    name = models.CharField(max_length=32, unique=True)
+    name = models.CharField(max_length=100, unique=True)
+    slug = models.SlugField(max_length=32, unique=True, db_index=True)
+
+    class Meta:
+        verbose_name = 'genre'
 
     def __str__(self):
-        return self.name
+        return self.slug
 
 
 class Category(models.Model):
