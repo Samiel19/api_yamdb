@@ -1,6 +1,19 @@
 from django.db import models
 from users.models import User
 
+RATING_CHOICES = (
+    (10, '10'),
+    (9, '9'),
+    (8, '8'),
+    (7, '7'),
+    (6, '6'),
+    (5, '5'),
+    (4, '4'),
+    (3, '3'),
+    (2, '2'),
+    (1, '1'),
+)
+
 
 class Genre(models.Model):
     name = models.CharField(max_length=100, unique=True)
@@ -43,47 +56,30 @@ class Titles(models.Model):
 
     class Meta:
         verbose_name = 'title'
-    
+
     def __str__(self):
         return self.name
 
 
 class Review(models.Model):
-    RATING_CHOICES = (
-        (10, '10'),
-        (9, '9'),
-        (8, '8'),
-        (7, '7'),
-        (6, '6'),
-        (5, '5'),
-        (4, '4'),
-        (3, '3'),
-        (2, '2'),
-        (1, '1'),
-    )
-    # Произведение
     titles = models.ForeignKey(Titles, on_delete=models.CASCADE)
-    # Отзыв
-    text = models.TextField()
-    # Юзер , нужно изменить!
+    # text = models.TextField()
     user = models.ForeignKey(
         User,
-        # default=1,
         on_delete=models.CASCADE
     )
-    created = models.DateTimeField(auto_now_add=True)   # время создания
-    updated = models.DateTimeField(auto_now=True)   # время редактирования
-    # Коммент
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
     comment = models.TextField(max_length=1024)
-    # Оценка от 1 до 10
     value = models.IntegerField(choices=RATING_CHOICES, default=1)
 
     def __str__(self):
-        return '{0}/{1} - {2}'.format(self.titles.title, self.user.username, self.value)
+        return '{0}/{1} - {2}'.format(
+            self.titles.name, self.user.username, self.value)
 
     class Meta:
-        verbose_name = "Titles Review"
-        verbose_name_plural = "Titles Reviews"
+        verbose_name = "reviews"
+        verbose_name_plural = "reviews"
         ordering = ['-pub_date']
 
 
