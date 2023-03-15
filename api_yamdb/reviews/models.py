@@ -65,7 +65,7 @@ class Review(models.Model):
     value = models.IntegerField(choices=RATING_CHOICES, default=1)
 
     def __str__(self):
-        return '{0}/{1} - {2}'.format(self.book.title, self.user.username, self.value)
+        return '{0}/{1} - {2}'.format(self.titles.title, self.user.username, self.value)
 
     class Meta:
         verbose_name = "Titles Review"
