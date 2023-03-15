@@ -26,6 +26,7 @@ class Category(models.Model):
 
 class Titles(models.Model):
     name = models.CharField(max_length=100, db_index=True)
+    year = models.IntegerField()
     genre = models.ManyToManyField(
         Genre,
         related_name='titles',
@@ -84,7 +85,7 @@ class Review(models.Model):
     class Meta:
         verbose_name = "Titles Review"
         verbose_name_plural = "Titles Reviews"
-        ordering = ['-pub_date']
+        ordering = ['-created']
 
 
 class Comment(models.Model):

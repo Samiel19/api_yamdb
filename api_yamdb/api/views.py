@@ -2,12 +2,13 @@ from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.shortcuts import render, get_object_or_404
 
-from rest_framework import status, mixins
+from rest_framework import status, filters
 from rest_framework.decorators import action
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.pagination import PageNumberPagination
 
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -34,6 +35,7 @@ class UserRegisterView(APIView):
 
     def post(self, request):
         serializer = UserRegisterSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
         if serializer.is_valid():
             serializer.save()
             username = request.data['username']
@@ -90,6 +92,8 @@ class UserViewSet(ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = (IsAdminOrSuperUser,)
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('username',)
 
     @action(
         methods=['get'],
