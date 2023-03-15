@@ -2,36 +2,50 @@ from django.db import models
 from users.models import User
 
 
-class Genres(models.Model):
-    name = models.CharField(max_length=32, unique=True)
+class Genre(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    slug = models.SlugField(max_length=32, unique=True, db_index=True)
+
+    class Meta:
+        verbose_name = 'genre'
 
     def __str__(self):
-        return self.name
+        return self.slug
 
 
 class Category(models.Model):
-    name = models.CharField(max_length=32, unique=True)
+    name = models.CharField(max_length=100, unique=True)
+    slug = models.SlugField(max_length=32, unique=True, db_index=True)
+
+    class Meta:
+        verbose_name = 'category'
 
     def __str__(self):
-        return self.name
+        return self.slug
 
 
 class Titles(models.Model):
-    title = models.CharField(max_length=32, unique=True)
-    slug = models.SlugField(unique=True)
-    genres = models.ForeignKey(
-        Genres,
-        on_delete=models.CASCADE
+    name = models.CharField(max_length=100, db_index=True)
+    genre = models.ManyToManyField(
+        Genre,
+        related_name='titles',
+        verbose_name='genre',
     )
     category = models.ForeignKey(
         Category,
-        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='titles',
+        verbose_name='category',
     )
-    author = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name='titles'
-    )
+    description = models.TextField(max_length=300, null=True, blank=True)
+
+    class Meta:
+        verbose_name = 'title'
+    
+    def __str__(self):
+        return self.name
 
 
 class Review(models.Model):
