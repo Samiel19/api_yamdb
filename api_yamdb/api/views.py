@@ -1,8 +1,9 @@
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
+from django.core.exceptions import PermissionDenied
 from django.shortcuts import render, get_object_or_404
 
-from rest_framework import status, filters
+from rest_framework import status, filters, permissions
 from rest_framework.decorators import action
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.views import APIView
@@ -13,8 +14,11 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .serializers import UserRegisterSerializer, UserAuthSerializer, UserSerializer
+from .serializers import ReviewSerializers, CommentSerializers
 from .permissions import IsAdminOrSuperUser
+from reviews.models import Review, Comment, Titles
 from users.models import User
+
 
 
 class TitleViewSet(ModelViewSet):
@@ -27,7 +31,6 @@ class CategoryViewSet(ModelViewSet):
 
 class GenreViewSet(ModelViewSet):
     pass
-
 
 
 class UserRegisterView(APIView):
@@ -125,3 +128,55 @@ class UserViewSet(ModelViewSet):
             return Response(serializer.data, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        
+class ReviewViewSet(ModelViewSet):
+    # queryset = Review.objects.all()
+    serializer_class = ReviewSerializers
+    permission_classes = (permissions.IsAuthenticated, )
+
+    @property
+    def titles_get(self):
+        return get_object_or_404(Titles, id=self.kwargs.get('title_id'))
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user, titles=self.titles_get)
+
+    def perform_update(self, serializer):
+        if serializer.instance.author != self.request.user:
+            raise PermissionDenied('Изменение запрещено')
+        super().perform_update(serializer)
+
+    def perform_destroy(self, serializer):
+        if serializer.author != self.request.user:
+            raise PermissionDenied('Удаление запрещено')
+        return super().perform_destroy(serializer)
+
+    def get_queryset(self):
+        return self.titles_get.reviews.all()
+
+
+class CommentViewSet(ModelViewSet):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializers
+    permission_classes = (permissions.IsAuthenticated, )
+
+    @property
+    def review_get(self):
+        return get_object_or_404(Review, id=self.kwargs.get('review_id'))
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user, reviews=self.review_get)
+
+    def perform_update(self, serializer):
+        if serializer.instance.author != self.request.user:
+            raise PermissionDenied('Изменение запрещено')
+        return super().perform_update(serializer)
+
+    def perform_destroy(self, serializer):
+        if serializer.author != self.request.user:
+            raise PermissionDenied('Удаление запрещено')
+        return super().perform_destroy(serializer)
+
+    def get_queryset(self):
+        return self.review_get.comment.all()
