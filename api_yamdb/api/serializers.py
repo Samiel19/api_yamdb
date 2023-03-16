@@ -1,5 +1,6 @@
 from reviews.models import Review, Comment, RATING_CHOICES
 from rest_framework import serializers
+from rest_framework.validators import UniqueTogetherValidator
 
 from users.models import User
 
@@ -35,14 +36,22 @@ class UserSerializer(serializers.ModelSerializer):
             'username', 'email', 'bio', 'role', 'first_name', 'last_name',
         )
 
-    def validate_username(self, username):
-        if username in 'me':
+    def validate(self, data):
+        if data.get('username') == 'me':
             raise serializers.ValidationError(
-                'Использовать имя me запрещено'
-            )
-        return username
+                'Имя me запрещено'
+            )     
+        return data
     
-    
+    def validate_role(self, role):
+        try:
+            if self.instance.role != 'admin':
+                return self.instance.role
+            return role
+        except AttributeError:
+             return role
+
+
 class UserAuthSerializer(serializers.Serializer):
     username = serializers.RegexField(
         regex=r'^[\w.@+-]+$',
@@ -57,14 +66,17 @@ class UserAuthSerializer(serializers.Serializer):
 
 class UserRegisterSerializer(serializers.ModelSerializer):
     
-
     def validate(self, data):
-        if User.objects.filter(email=data['email']).exists():
-            raise serializers.ValidationError('Пользователь с таким email уже существует')
-        if User.objects.filter(email=data['username']).exists():
-            raise serializers.ValidationError('Пользователь с таким username уже существует')
         if data['username'] == 'me':
             raise serializers.ValidationError('me вам ещё понадобится!')
+        if User.objects.filter(username=data.get('username')).exists():
+            raise serializers.ValidationError(
+                'Такой username уже есть'
+            )
+        if User.objects.filter(email=data.get('email')).exists():
+            raise serializers.ValidationError(
+                'Такой email уже есть'
+            )
         return data
 
     class Meta:
