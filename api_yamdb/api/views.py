@@ -8,14 +8,16 @@ from rest_framework.decorators import action
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import (AllowAny,
+                                        IsAuthenticated,
+                                        IsAuthenticatedOrReadOnly)
 from rest_framework.pagination import PageNumberPagination
 
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .serializers import UserRegisterSerializer, UserAuthSerializer, UserSerializer
 from .serializers import ReviewSerializers, CommentSerializers
-from .permissions import IsAdminOrSuperUser
+from .permissions import IsAdminOrSuperUser, IsAuthenticatedUser
 from reviews.models import Review, Comment, Titles
 from users.models import User
 
@@ -128,12 +130,12 @@ class UserViewSet(ModelViewSet):
             return Response(serializer.data, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
-        
+
+
 class ReviewViewSet(ModelViewSet):
     # queryset = Review.objects.all()
     serializer_class = ReviewSerializers
-    permission_classes = (permissions.IsAuthenticated, )
+    permission_classes = (IsAuthenticatedOrReadOnly, IsAuthenticatedUser, )
 
     @property
     def titles_get(self):
@@ -159,7 +161,7 @@ class ReviewViewSet(ModelViewSet):
 class CommentViewSet(ModelViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializers
-    permission_classes = (permissions.IsAuthenticated, )
+    permission_classes = (IsAuthenticatedOrReadOnly, IsAuthenticatedUser, )
 
     @property
     def review_get(self):
