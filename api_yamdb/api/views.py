@@ -2,6 +2,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import render, get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
 
 from rest_framework import status, filters, permissions
 from rest_framework.decorators import action
@@ -11,28 +12,48 @@ from rest_framework.response import Response
 from rest_framework.permissions import (AllowAny,
                                         IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
+from rest_framework.filters import SearchFilter
 from rest_framework.pagination import PageNumberPagination
 
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .serializers import UserRegisterSerializer, UserAuthSerializer, UserSerializer
-from .serializers import ReviewSerializers, CommentSerializers
+from .serializers import (
+    ReviewSerializers, CommentSerializers,
+    TitleReadSerializer, TitleWriteSerializer,
+    CategorySerializer, GenreSerializer,
+    UserRegisterSerializer, UserAuthSerializer, UserSerializer,
+)
 from .permissions import IsAdminOrSuperUser, IsAuthenticatedUser
-from reviews.models import Review, Comment, Titles
+from reviews.models import Review, Comment, Title, Category, Genre
 from users.models import User
 
 
-
 class TitleViewSet(ModelViewSet):
-    pass
+    queryset = Title.objects.all()
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = None
+    
+    def get_serializer_class(self):
+        if self.action in ('list', 'retrieve'):
+            return TitleReadSerializer
+        return TitleWriteSerializer
 
 
 class CategoryViewSet(ModelViewSet):
-    pass
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    filter_backends = (SearchFilter,)
+    search_field = ('name',)
+    lookup_field = 'slug'
 
 
 class GenreViewSet(ModelViewSet):
-    pass
+    queryset = Genre.objects.all()
+    serializer_class = GenreSerializer
+    filter_backends = (SearchFilter,)
+    search_field = ('name',)
+    lookup_field = 'slug'
 
 
 class UserRegisterView(APIView):
@@ -40,26 +61,39 @@ class UserRegisterView(APIView):
 
     def post(self, request):
         serializer = UserRegisterSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
         if serializer.is_valid():
             serializer.save()
             username = request.data['username']
-            email = request.data['email']
             user = User.objects.get(username=username)
             confirmation_code = default_token_generator.make_token(user)
             send_mail(
                 subject='Код авторизации YaMDB',
                 message=f'Ваш код для авторизации: {confirmation_code}',
                 from_email='team62@practicum.com',
-                recipient_list=[email],
+                recipient_list=[user.email],
+                fail_silently=False,
+            )
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        elif User.objects.filter(
+            email=request.data.get('email'),
+            username=request.data.get('username')
+        ).exists():
+            username = request.data['username']
+            user = User.objects.get(username=username)
+            confirmation_code = default_token_generator.make_token(user)
+            send_mail(
+                subject='Код авторизации YaMDB',
+                message=f'Ваш код для авторизации: {confirmation_code}',
+                from_email='team62@practicum.com',
+                recipient_list=[user.email],
                 fail_silently=False,
             )
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    
 
 class UserAuthenticationView(APIView):
+    queryset = User.objects.all()
     permission_classes = (AllowAny,)
 
     def get_tokens_for_user(self, user):
@@ -74,14 +108,14 @@ class UserAuthenticationView(APIView):
         serializer = UserAuthSerializer(data=request.data)
 
         if serializer.is_valid():
-            username = request.data['username']
-            confirmation_code = request.data['confirmation_code']
+            username = serializer.validated_data.get('username')
+            confirmation_code = serializer.validated_data.get('confirmation_code')
             if not User.objects.filter(username=username).exists():
                 return Response(
                     'Нет username - нет печенек',
                     status=status.HTTP_404_NOT_FOUND
                 )
-            user = User.objects.get(username=username)
+            user = get_object_or_404(User, username=username)
             if not default_token_generator.check_token(user, confirmation_code):
                 return Response(
                     'Не верный код подтверждения',
@@ -99,6 +133,14 @@ class UserViewSet(ModelViewSet):
     permission_classes = (IsAdminOrSuperUser,)
     filter_backends = (filters.SearchFilter,)
     search_fields = ('username',)
+    http_method_names = [
+        'get',
+        'patch',
+        'delete',
+        'head',
+        'post'
+    ]
+    
 
     @action(
         methods=['get'],
@@ -139,7 +181,7 @@ class ReviewViewSet(ModelViewSet):
 
     @property
     def titles_get(self):
-        return get_object_or_404(Titles, id=self.kwargs.get('title_id'))
+        return get_object_or_404(Title, id=self.kwargs.get('title_id'))
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user, titles=self.titles_get)
