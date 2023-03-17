@@ -37,7 +37,7 @@ class Category(models.Model):
         return self.slug
 
 
-class Titles(models.Model):
+class Title(models.Model):
     name = models.CharField(max_length=100, db_index=True)
     year = models.IntegerField()
     genre = models.ManyToManyField(
@@ -63,7 +63,7 @@ class Titles(models.Model):
 
 
 class Review(models.Model):
-    titles = models.ForeignKey(Titles, on_delete=models.CASCADE)
+    titles = models.ForeignKey(Title, on_delete=models.CASCADE)
     # text = models.TextField()
     user = models.ForeignKey(
         User,
@@ -91,7 +91,7 @@ class Comment(models.Model):
         related_name='comments'
     )
     titles = models.ForeignKey(
-        Titles,
+        Title,
         on_delete=models.CASCADE,
         related_name='comments'
     )

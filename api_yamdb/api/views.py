@@ -2,6 +2,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import render, get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
 
 from rest_framework import status, filters, permissions
 from rest_framework.decorators import action
@@ -9,28 +10,47 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.filters import SearchFilter
 from rest_framework.pagination import PageNumberPagination
 
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .serializers import UserRegisterSerializer, UserAuthSerializer, UserSerializer
-from .serializers import ReviewSerializers, CommentSerializers
+from .serializers import (
+    ReviewSerializers, CommentSerializers,
+    TitleReadSerializer, TitleWriteSerializer,
+    CategorySerializer, GenreSerializer,
+    UserRegisterSerializer, UserAuthSerializer, UserSerializer,
+)
 from .permissions import IsAdminOrSuperUser
-from reviews.models import Review, Comment, Titles
+from reviews.models import Review, Comment, Title, Category, Genre
 from users.models import User
 
 
-
 class TitleViewSet(ModelViewSet):
-    pass
+    queryset = Title.objects.all()
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = None
+    
+    def get_serializer_class(self):
+        if self.action in ('list', 'retrieve'):
+            return TitleReadSerializer
+        return TitleWriteSerializer
 
 
 class CategoryViewSet(ModelViewSet):
-    pass
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    filter_backends = (SearchFilter,)
+    search_field = ('name',)
+    lookup_field = 'slug'
 
 
 class GenreViewSet(ModelViewSet):
-    pass
+    queryset = Genre.objects.all()
+    serializer_class = GenreSerializer
+    filter_backends = (SearchFilter,)
+    search_field = ('name',)
+    lookup_field = 'slug'
 
 
 class UserRegisterView(APIView):
@@ -158,7 +178,7 @@ class ReviewViewSet(ModelViewSet):
 
     @property
     def titles_get(self):
-        return get_object_or_404(Titles, id=self.kwargs.get('title_id'))
+        return get_object_or_404(Title, id=self.kwargs.get('title_id'))
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user, titles=self.titles_get)
