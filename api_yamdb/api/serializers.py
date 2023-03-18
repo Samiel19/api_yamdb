@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
+
 from users.models import User
 from reviews.models import (
     Review, Comment, RATING_CHOICES,
@@ -9,29 +10,38 @@ from reviews.models import (
 
 
 class ReviewSerializers(serializers.ModelSerializer):
-    user = serializers.SlugRelatedField(
+    author = serializers.StringRelatedField(
         read_only=True,
-        slug_field='username'
+        # slug_field='username'
     )
-    value = serializers.ChoiceField(choices=RATING_CHOICES)
+    score = serializers.ChoiceField(choices=RATING_CHOICES)
 
     class Meta:
-        fieds = '__all__'
+        fields = ('id', 'text', 'author', 'score', 'pub_date')
         model = Review
-        read_only_fields = ('titles', )
+        # validators = (
+        #     UniqueTogetherValidator(
+        #         queryset=Review.objects.all(),
+        #         fields=['author', 'titles'],
+        #         message='Ошибка'
+        #     ),
+        # )
+
+    # def validate(self, data):
+    #     if self.context['request'].user  in data.get('titles'):
+    #         raise serializers.ValidationError(['Contact phone field is required.'])
 
 
 class CommentSerializers(serializers.ModelSerializer):
-    author = serializers.SlugRelatedField(
+    author = serializers.StringRelatedField(
         read_only=True,
-        slug_field='username'
     )
 
     class Meta:
-        fields = '__all__'
+        fields = ('id', 'text', 'author', 'pub_date')
         model = Comment
-        read_only_fields = ('review', )       
-        
+
+
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User

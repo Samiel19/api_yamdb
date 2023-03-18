@@ -63,25 +63,30 @@ class Title(models.Model):
 
 
 class Review(models.Model):
-    titles = models.ForeignKey(Title, on_delete=models.CASCADE)
+    titles = models.ForeignKey(Title,
+                               on_delete=models.CASCADE,
+                               related_name='reviews',
+                               null=True
+                               )
     # text = models.TextField()
-    user = models.ForeignKey(
+    author = models.ForeignKey(
         User,
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        related_name='reviews',
     )
-    created = models.DateTimeField(auto_now_add=True)
+    pub_date = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
-    comment = models.TextField(max_length=1024)
-    value = models.IntegerField(choices=RATING_CHOICES, default=1)
+    text = models.TextField(max_length=1024)
+    score = models.IntegerField(choices=RATING_CHOICES, default=1)
 
     def __str__(self):
         return '{0}/{1} - {2}'.format(
             self.titles.name, self.user.username, self.value)
 
     class Meta:
-        verbose_name = "Titles Review"
-        verbose_name_plural = "Titles Reviews"
-        ordering = ['-created']
+        verbose_name = "review"
+        verbose_name_plural = "reviews"
+        ordering = ['-pub_date']
 
 
 class Comment(models.Model):
@@ -90,20 +95,16 @@ class Comment(models.Model):
         on_delete=models.CASCADE,
         related_name='comments'
     )
-    titles = models.ForeignKey(
-        Title,
-        on_delete=models.CASCADE,
-        related_name='comments'
-    )
     text = models.TextField()
-    created = models.DateTimeField(
+    pub_date = models.DateTimeField(
         'Дата добавления',
         auto_now_add=True,
         db_index=True
     )
     review = models.ForeignKey(
         Review,
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        related_name='comments'
     )
 
     class Meta:

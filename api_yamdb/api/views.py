@@ -175,52 +175,60 @@ class UserViewSet(ModelViewSet):
 
 
 class ReviewViewSet(ModelViewSet):
-    # queryset = Review.objects.all()
     serializer_class = ReviewSerializers
-    permission_classes = (IsAuthenticatedOrReadOnly, IsAuthenticatedUser, )
+    permission_classes = (IsAuthenticatedUser, IsAuthenticatedOrReadOnly,)
 
     @property
-    def titles_get(self):
+    def get_titles(self):
         return get_object_or_404(Title, id=self.kwargs.get('title_id'))
 
     def perform_create(self, serializer):
-        serializer.save(author=self.request.user, titles=self.titles_get)
-
-    def perform_update(self, serializer):
-        if serializer.instance.author != self.request.user:
-            raise PermissionDenied('Изменение запрещено')
-        super().perform_update(serializer)
-
-    def perform_destroy(self, serializer):
-        if serializer.author != self.request.user:
-            raise PermissionDenied('Удаление запрещено')
-        return super().perform_destroy(serializer)
+        serializer.save(author=self.request.user, titles=self.get_titles)
 
     def get_queryset(self):
-        return self.titles_get.reviews.all()
+        return self.get_titles.reviews.all()
+
+    # def post(self, request):
+    #     serializer = ReviewSerializers(data=request.data)
+    #     if serializer.is_valid():
+    #         if Review.objects.filter(reviews=request.data.get('reviews'),
+    #                                  username=request.data.get('username')
+    #                                  ).exists():
+    #             return Response(
+    #                 'Нелзя',
+    #                 status=status.HTTP_400_BAD_REQUEST
+    #             )
+    #     return Response(serializer.data)
+
+    # @action(
+    #     methods=['post'],
+    #     detail=False,
+    #     permission_classes=[IsAuthenticatedUser],
+    # )
+    # def post(self, request, *args, **kwargs):
+    #     # if request.method == 'POST':
+    #     #     serializer = ReviewSerializers(data=request.data)
+    #     #     if serializer.is_valid(raise_exception=True):
+    #     #         return Response(serializer.validated_data, status=status.HTTP_200_OK)
+    #     #     else:
+    #     #         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    #     serializer = ReviewSerializers(data=request.data)
+    #     if serializer.is_valid():
+    #         serializer.save()
+    #         return Response(serializer.data, status=status.HTTP_200_OK)
+    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class CommentViewSet(ModelViewSet):
-    queryset = Comment.objects.all()
     serializer_class = CommentSerializers
-    permission_classes = (IsAuthenticatedOrReadOnly, IsAuthenticatedUser, )
+    permission_classes = (IsAuthenticatedUser, IsAuthenticatedOrReadOnly,)
 
     @property
-    def review_get(self):
+    def get_review(self):
         return get_object_or_404(Review, id=self.kwargs.get('review_id'))
 
     def perform_create(self, serializer):
-        serializer.save(author=self.request.user, reviews=self.review_get)
-
-    def perform_update(self, serializer):
-        if serializer.instance.author != self.request.user:
-            raise PermissionDenied('Изменение запрещено')
-        return super().perform_update(serializer)
-
-    def perform_destroy(self, serializer):
-        if serializer.author != self.request.user:
-            raise PermissionDenied('Удаление запрещено')
-        return super().perform_destroy(serializer)
+        serializer.save(author=self.request.user, review=self.get_review)
 
     def get_queryset(self):
-        return self.review_get.comment.all()
+        return self.get_review.comments.all()
