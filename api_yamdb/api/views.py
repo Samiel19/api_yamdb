@@ -33,7 +33,7 @@ from users.models import User
 
 class TitleViewSet(ModelViewSet):
     queryset = Title.objects.all()
-    permission_classes = (AdminOrReadOnly,)
+    permission_classes = (AdminOrReadOnly, IsAuthenticatedUser,)
     filter_backends = (DjangoFilterBackend,)
     filterset_class = None
     
@@ -70,7 +70,7 @@ class GenreViewSet(CreateModelMixin, ListModelMixin,
 
     def retrieve(self, request, *args, **kwargs):
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
-    
+
     def update(self, request, *args, **kwargs):
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
@@ -197,14 +197,14 @@ class ReviewViewSet(ModelViewSet):
     permission_classes = (IsAuthenticatedUser, IsAuthenticatedOrReadOnly,)
 
     @property
-    def get_titles(self):
+    def get_title(self):
         return get_object_or_404(Title, id=self.kwargs.get('title_id'))
 
     def perform_create(self, serializer):
-        serializer.save(author=self.request.user, titles=self.get_titles)
+        serializer.save(author=self.request.user, title=self.get_title)
 
     def get_queryset(self):
-        return self.get_titles.reviews.all()
+        return self.get_title.reviews.all()
 
     # def post(self, request):
     #     serializer = ReviewSerializers(data=request.data)
@@ -223,11 +223,11 @@ class ReviewViewSet(ModelViewSet):
     #     detail=False,
     #     permission_classes=[IsAuthenticatedUser],
     # )
-    # def post(self, request, *args, **kwargs):
-    #     # if request.method == 'POST':
-    #     #     serializer = ReviewSerializers(data=request.data)
-    #     #     if serializer.is_valid(raise_exception=True):
-    #     #         return Response(serializer.validated_data, status=status.HTTP_200_OK)
+    def post(self, request, *args, **kwargs):
+        if request.method == 'POST':
+            serializer = ReviewSerializers(data=request.data)
+            if serializer.is_valid(raise_exception=True):
+                return Response(serializer.validated_data, status=status.HTTP_200_OK)
     #     #     else:
     #     #         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     #     serializer = ReviewSerializers(data=request.data)

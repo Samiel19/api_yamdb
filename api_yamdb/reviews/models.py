@@ -63,7 +63,7 @@ class Title(models.Model):
 
 
 class Review(models.Model):
-    titles = models.ForeignKey(Title,
+    title = models.ForeignKey(Title,
                                on_delete=models.CASCADE,
                                related_name='reviews',
                                null=True
@@ -87,6 +87,9 @@ class Review(models.Model):
         verbose_name = "review"
         verbose_name_plural = "reviews"
         ordering = ['-pub_date']
+        constraints = (
+            models.UniqueConstraint(fields=['author', 'title'],
+                                    name='author_title'),)
 
 
 class Comment(models.Model):

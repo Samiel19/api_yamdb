@@ -20,14 +20,34 @@ class ReviewSerializers(serializers.ModelSerializer):
         fields = ('id', 'text', 'author', 'score', 'pub_date')
 
         model = Review
-        # validators = (
-        #     UniqueTogetherValidator(
-        #         queryset=Review.objects.all(),
-        #         fields=['author', 'titles'],
-        #         message='Ошибка'
-        #     ),
-        # )
+        read_only_fields = ['title']
+        # unique_together = ('author', 'titles_id')
 
+    def validate(self, data):
+        if self.context['request'].method == 'POST':
+            title_id = (
+                self.context['request'].parser_context['kwargs']['title_id']
+            )
+            author = self.context['request'].user
+            if Review.objects.filter(author=author, title_id=title_id).exists():
+                raise serializers.ValidationError(['Нельзя'])
+        return data
+ 
+    # def validate(self, data):
+    #     author = self.context['request'].user
+    #     title_id = self.context['review'].kwargs.get('titles_id')
+    #     if Review.objects.filter(author=author, titles=title_id).exists():
+    #         raise serializers.ValidationError(['Нельзя'])
+    #     return data
+
+    # def validate(self, data):
+    #     author = self.context['request'].user
+    #     # titles = get_object_or_404('titles')
+    #     titles = self.data['titles']
+    #     # titles = Title.objects.get(titles_id)
+    #     if Review.objects.filter(author=author, titles=titles).exists():
+    #         raise serializers.ValidationError(['Нельзя'])
+    #     return data
     # def validate(self, data):
     #     if self.context['request'].user  in data.get('titles'):
     #         raise serializers.ValidationError(['Contact phone field is required.'])
