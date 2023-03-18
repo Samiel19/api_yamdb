@@ -6,7 +6,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 
 from rest_framework import status, filters, permissions
 from rest_framework.decorators import action
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import (AllowAny,
@@ -14,6 +14,8 @@ from rest_framework.permissions import (AllowAny,
                                         IsAuthenticatedOrReadOnly)
 from rest_framework.filters import SearchFilter
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.mixins import (CreateModelMixin, DestroyModelMixin,
+                                   ListModelMixin)
 
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -41,7 +43,8 @@ class TitleViewSet(ModelViewSet):
         return TitleWriteSerializer
 
 
-class CategoryViewSet(ModelViewSet):
+class CategoryViewSet(CreateModelMixin, ListModelMixin,
+                    DestroyModelMixin, GenericViewSet):
     queryset = Category.objects.all()
     permission_classes = (AdminOrReadOnly,)
     serializer_class = CategorySerializer
@@ -56,7 +59,8 @@ class CategoryViewSet(ModelViewSet):
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
-class GenreViewSet(ModelViewSet):
+class GenreViewSet(CreateModelMixin, ListModelMixin,
+                    DestroyModelMixin, GenericViewSet):
     queryset = Genre.objects.all()
     permission_classes = (AdminOrReadOnly,)
     serializer_class = GenreSerializer
