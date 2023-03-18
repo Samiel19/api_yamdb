@@ -18,6 +18,7 @@ class ReviewSerializers(serializers.ModelSerializer):
 
     class Meta:
         fields = ('id', 'text', 'author', 'score', 'pub_date')
+
         model = Review
         # validators = (
         #     UniqueTogetherValidator(
@@ -40,8 +41,7 @@ class CommentSerializers(serializers.ModelSerializer):
     class Meta:
         fields = ('id', 'text', 'author', 'pub_date')
         model = Comment
-
-
+        read_only_fields = ('review', )       
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -62,7 +62,7 @@ class UserSerializer(serializers.ModelSerializer):
                 return self.instance.role
             return role
         except AttributeError:
-             return role
+            return role
 
 
 class UserAuthSerializer(serializers.Serializer):
@@ -78,7 +78,7 @@ class UserAuthSerializer(serializers.Serializer):
 
 
 class UserRegisterSerializer(serializers.ModelSerializer):
-    
+
     def validate(self, data):
         if data['username'] == 'me':
             raise serializers.ValidationError('me вам ещё понадобится!')

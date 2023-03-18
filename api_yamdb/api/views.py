@@ -6,7 +6,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 
 from rest_framework import status, filters, permissions
 from rest_framework.decorators import action
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import (AllowAny,
@@ -14,6 +14,8 @@ from rest_framework.permissions import (AllowAny,
                                         IsAuthenticatedOrReadOnly)
 from rest_framework.filters import SearchFilter
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.mixins import (CreateModelMixin, DestroyModelMixin,
+                                   ListModelMixin)
 
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -24,13 +26,14 @@ from .serializers import (
     CategorySerializer, GenreSerializer,
     UserRegisterSerializer, UserAuthSerializer, UserSerializer,
 )
-from .permissions import IsAdminOrSuperUser, IsAuthenticatedUser
+from .permissions import IsAdminOrSuperUser, IsAuthenticatedUser, AdminOrReadOnly
 from reviews.models import Review, Comment, Title, Category, Genre
 from users.models import User
 
 
 class TitleViewSet(ModelViewSet):
     queryset = Title.objects.all()
+    permission_classes = (AdminOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
     filterset_class = None
     
@@ -40,20 +43,36 @@ class TitleViewSet(ModelViewSet):
         return TitleWriteSerializer
 
 
-class CategoryViewSet(ModelViewSet):
+class CategoryViewSet(CreateModelMixin, ListModelMixin,
+                    DestroyModelMixin, GenericViewSet):
     queryset = Category.objects.all()
+    permission_classes = (AdminOrReadOnly,)
     serializer_class = CategorySerializer
     filter_backends = (SearchFilter,)
-    search_field = ('name',)
+    search_fields = ('name',)
     lookup_field = 'slug'
 
+    def retrieve(self, request, *args, **kwargs):
+        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
-class GenreViewSet(ModelViewSet):
+    def update(self, request, *args, **kwargs):
+        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+
+class GenreViewSet(CreateModelMixin, ListModelMixin,
+                    DestroyModelMixin, GenericViewSet):
     queryset = Genre.objects.all()
+    permission_classes = (AdminOrReadOnly,)
     serializer_class = GenreSerializer
     filter_backends = (SearchFilter,)
-    search_field = ('name',)
+    search_fields = ('name',)
     lookup_field = 'slug'
+
+    def retrieve(self, request, *args, **kwargs):
+        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+    
+    def update(self, request, *args, **kwargs):
+        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
 class UserRegisterView(APIView):
@@ -103,7 +122,7 @@ class UserAuthenticationView(APIView):
             'refresh': str(refresh),
             'acesses': str(refresh.access_token),
         }
-    
+
     def post(self, request):
         serializer = UserAuthSerializer(data=request.data)
 
@@ -124,14 +143,14 @@ class UserAuthenticationView(APIView):
             token = self.get_tokens_for_user(user)
             return Response(token, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
 
 class UserViewSet(ModelViewSet):
     lookup_field = 'username'
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = (IsAdminOrSuperUser,)
-    filter_backends = (filters.SearchFilter,)
+    filter_backends = (SearchFilter,)
     search_fields = ('username',)
     http_method_names = [
         'get',
@@ -140,7 +159,6 @@ class UserViewSet(ModelViewSet):
         'head',
         'post'
     ]
-    
 
     @action(
         methods=['get'],
@@ -153,7 +171,7 @@ class UserViewSet(ModelViewSet):
         user = get_object_or_404(User, username=username)
         serializer = self.get_serializer(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
-    
+ 
     @action(
         methods=['patch'],
         detail=False,
