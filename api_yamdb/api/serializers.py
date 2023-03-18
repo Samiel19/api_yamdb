@@ -16,7 +16,7 @@ class ReviewSerializers(serializers.ModelSerializer):
     value = serializers.ChoiceField(choices=RATING_CHOICES)
 
     class Meta:
-        fieds = '__all__'
+        fields = '__all__'
         model = Review
         read_only_fields = ('titles', )
 
@@ -31,7 +31,8 @@ class CommentSerializers(serializers.ModelSerializer):
         fields = '__all__'
         model = Comment
         read_only_fields = ('review', )       
-        
+
+      
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -52,7 +53,7 @@ class UserSerializer(serializers.ModelSerializer):
                 return self.instance.role
             return role
         except AttributeError:
-             return role
+            return role
 
 
 class UserAuthSerializer(serializers.Serializer):
@@ -68,7 +69,7 @@ class UserAuthSerializer(serializers.Serializer):
 
 
 class UserRegisterSerializer(serializers.ModelSerializer):
-    
+
     def validate(self, data):
         if data['username'] == 'me':
             raise serializers.ValidationError('me вам ещё понадобится!')
