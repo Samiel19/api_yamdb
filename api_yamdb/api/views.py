@@ -27,6 +27,7 @@ from .serializers import (
     UserRegisterSerializer, UserAuthSerializer, UserSerializer,
 )
 from .permissions import IsAdminOrSuperUser, IsAuthenticatedUser, AdminOrReadOnly
+from .filters import TitleFilter
 from reviews.models import Review, Comment, Title, Category, Genre
 from users.models import User
 
@@ -35,7 +36,7 @@ class TitleViewSet(ModelViewSet):
     queryset = Title.objects.all()
     permission_classes = (AdminOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
-    filterset_class = None
+    filterset_class = TitleFilter
     
     def get_serializer_class(self):
         if self.action in ('list', 'retrieve'):
