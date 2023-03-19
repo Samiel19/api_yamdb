@@ -134,8 +134,8 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class TitleReadSerializer(serializers.ModelSerializer):
-    genre = GenreSerializer(read_only=True)
-    category = CategorySerializer(read_only=True, many=True)
+    genre = GenreSerializer(read_only=True, many=True)
+    category = CategorySerializer(read_only=True)
     value = serializers.IntegerField(read_only=True)
 
     class Meta:
