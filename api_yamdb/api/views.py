@@ -3,6 +3,7 @@ from django.core.mail import send_mail
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import render, get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
+from django.db.models import Avg
 
 from rest_framework import status, filters, permissions
 from rest_framework.decorators import action
@@ -33,7 +34,7 @@ from users.models import User
 
 
 class TitleViewSet(ModelViewSet):
-    queryset = Title.objects.all()
+    queryset = Title.objects.annotate(rating=Avg('reviews__score')).all()
     permission_classes = (AdminOrReadOnly, IsAuthenticatedUser,)
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilter

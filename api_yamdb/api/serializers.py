@@ -136,7 +136,7 @@ class CategorySerializer(serializers.ModelSerializer):
 class TitleReadSerializer(serializers.ModelSerializer):
     genre = GenreSerializer(read_only=True, many=True)
     category = CategorySerializer(read_only=True)
-    value = serializers.IntegerField(read_only=True)
+    rating = serializers.IntegerField(read_only=True)
 
     class Meta:
         fields = '__all__'
@@ -153,6 +153,7 @@ class TitleWriteSerializer(serializers.ModelSerializer):
         queryset=Category.objects.all(),
         slug_field='slug',
     )
+    #rating = serializers.IntegerField()
 
     class Meta:
         fields = '__all__'
