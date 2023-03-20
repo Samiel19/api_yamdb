@@ -1,4 +1,5 @@
 from django.db import models
+
 from users.models import User
 
 RATING_CHOICES = (
@@ -64,11 +65,9 @@ class Title(models.Model):
 
 class Review(models.Model):
     title = models.ForeignKey(Title,
-                               on_delete=models.CASCADE,
-                               related_name='reviews',
-                               null=True
-                               )
-    # text = models.TextField()
+                              on_delete=models.CASCADE,
+                              related_name='reviews',
+                              null=True)
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,

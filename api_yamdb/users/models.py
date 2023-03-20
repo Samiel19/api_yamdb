@@ -1,6 +1,6 @@
 from django.contrib.auth.models import AbstractUser
-from django.db import models
 from django.core.validators import RegexValidator
+from django.db import models
 
 
 class User(AbstractUser):
@@ -30,7 +30,7 @@ class User(AbstractUser):
             regex=r'^[\w.@+-]+$',
             message='Имя пользователя содержит недопустимый символ'
         )]
-        )
+    )
     first_name = models.CharField(
         max_length=150,
         verbose_name='имя',

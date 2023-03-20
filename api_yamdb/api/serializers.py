@@ -1,12 +1,8 @@
 from rest_framework import serializers
-from rest_framework.validators import UniqueTogetherValidator
 
-
+from reviews.models import (RATING_CHOICES, Category, Comment, Genre, Review,
+                            Title)
 from users.models import User
-from reviews.models import (
-    Review, Comment, RATING_CHOICES,
-    Title, Category, Genre,
-)
 
 
 class ReviewSerializers(serializers.ModelSerializer):
@@ -29,28 +25,11 @@ class ReviewSerializers(serializers.ModelSerializer):
                 self.context['request'].parser_context['kwargs']['title_id']
             )
             author = self.context['request'].user
-            if Review.objects.filter(author=author, title_id=title_id).exists():
+            if Review.objects.filter(
+                author=author, title_id=title_id
+            ).exists():
                 raise serializers.ValidationError(['Нельзя'])
         return data
- 
-    # def validate(self, data):
-    #     author = self.context['request'].user
-    #     title_id = self.context['review'].kwargs.get('titles_id')
-    #     if Review.objects.filter(author=author, titles=title_id).exists():
-    #         raise serializers.ValidationError(['Нельзя'])
-    #     return data
-
-    # def validate(self, data):
-    #     author = self.context['request'].user
-    #     # titles = get_object_or_404('titles')
-    #     titles = self.data['titles']
-    #     # titles = Title.objects.get(titles_id)
-    #     if Review.objects.filter(author=author, titles=titles).exists():
-    #         raise serializers.ValidationError(['Нельзя'])
-    #     return data
-    # def validate(self, data):
-    #     if self.context['request'].user  in data.get('titles'):
-    #         raise serializers.ValidationError(['Contact phone field is required.'])
 
 
 class CommentSerializers(serializers.ModelSerializer):
@@ -61,7 +40,9 @@ class CommentSerializers(serializers.ModelSerializer):
     class Meta:
         fields = ('id', 'text', 'author', 'pub_date')
         model = Comment
-        read_only_fields = ('review', )       
+        read_only_fields = ('review', )
+
+
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -73,9 +54,9 @@ class UserSerializer(serializers.ModelSerializer):
         if data.get('username') == 'me':
             raise serializers.ValidationError(
                 'Имя me запрещено'
-            )     
+            )
         return data
-    
+
     def validate_role(self, role):
         try:
             if self.instance.role != 'admin':
@@ -153,7 +134,6 @@ class TitleWriteSerializer(serializers.ModelSerializer):
         queryset=Category.objects.all(),
         slug_field='slug',
     )
-    #rating = serializers.IntegerField()
 
     class Meta:
         fields = '__all__'
