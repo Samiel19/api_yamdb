@@ -90,7 +90,7 @@ class UserRegisterView(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         elif User.objects.filter(
             email=email,
-            username=request.data.get('username')
+            username=username
         ).exists():
             user = User.objects.get(username=username, email=email)
             send_code(user=user)
