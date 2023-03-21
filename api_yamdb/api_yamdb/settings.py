@@ -135,3 +135,11 @@ EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
 EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+
+ROLES = [
+    ('user', 'Пользователь'),
+    ('moderator', 'Модератор'),
+    ('admin', 'Администратор'),
+]
+
+ROLES_MAX_LEN = len(max(ROLES, key=lambda role: len(role[0]))[0])
