@@ -83,19 +83,18 @@ class UserRegisterView(APIView):
         serializer = UserRegisterSerializer(data=request.data)
         username = request.data.get('username')
         email = request.data.get('email')
-        if serializer.is_valid():
-            serializer.save()
-            user = User.objects.get(**serializer.validated_data)
-            send_code(user=user)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        elif User.objects.filter(
+        if User.objects.filter(
             email=email,
             username=username
         ).exists():
             user = User.objects.get(username=username, email=email)
             send_code(user=user)
             return Response(status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        user = User.objects.get(**serializer.validated_data)
+        send_code(user=user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class UserAuthenticationView(APIView):
@@ -112,28 +111,18 @@ class UserAuthenticationView(APIView):
 
     def post(self, request):
         serializer = UserAuthSerializer(data=request.data)
-
-        if serializer.is_valid():
-            username = serializer.validated_data.get('username')
-            confirmation_code = serializer.validated_data.get(
-                'confirmation_code'
-            )
-            if not User.objects.filter(username=username).exists():
-                return Response(
-                    'Нет username - нет печенек',
-                    status=status.HTTP_404_NOT_FOUND
-                )
-            user = get_object_or_404(User, username=username)
-            if not default_token_generator.check_token(
-                user, confirmation_code
-            ):
-                return Response(
-                    'Неверный код подтверждения',
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-            token = self.get_tokens_for_user(user)
-            return Response(token, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.is_valid(raise_exception=True)
+        username = serializer.validated_data.get('username')
+        user = get_object_or_404(User, username=username)
+        confirmation_code = serializer.validated_data.get(
+            'confirmation_code'
+        )
+        if not default_token_generator.check_token(user,
+                                                   confirmation_code):
+            return Response('Неверный код подтверждения',
+                            status=status.HTTP_400_BAD_REQUEST)
+        token = self.get_tokens_for_user(user)
+        return Response(token, status=status.HTTP_200_OK)
 
 
 class UserViewSet(ModelViewSet):
@@ -152,35 +141,20 @@ class UserViewSet(ModelViewSet):
     ]
 
     @action(
-        methods=['get'],
+        methods=['get', 'patch'],
         detail=False,
         url_path='me',
         permission_classes=[IsAuthenticated],
     )
-    def get_me(self, request):
+    def get_me_patch(self, request):
         username = request.user.username
         user = get_object_or_404(User, username=username)
-        serializer = self.get_serializer(user)
+        serializer = UserSerializer(user,
+                                    data=request.data,
+                                    partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
-
-    @action(
-        methods=['patch'],
-        detail=False,
-        url_path='me',
-        permission_classes=[IsAuthenticated],
-    )
-    def patch(self, request):
-        username = request.user.username
-        user = get_object_or_404(User, username=username)
-        serializer = UserSerializer(
-            user, data=request.data, partial=True
-        )
-
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ReviewViewSet(ModelViewSet):
