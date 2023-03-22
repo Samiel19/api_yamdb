@@ -16,7 +16,7 @@
 
 [Anton Sadagov](https://github.com/Samiel19)
 
-[Shipilov Dmitriy](https://github.com/DimaLaptev)
+[Dmitriy Shipilov](https://github.com/DimaLaptev)
 
 [Alexandr Besprozvanov](https://github.com/Besprozvanov)
 
