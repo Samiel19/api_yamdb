@@ -5,8 +5,8 @@ from django.core.management import BaseCommand
 
 from reviews.models import (
     Title, Genre, Category, Review, Comment,
-)  
-from users.models import User 
+)
+from users.models import User
 
 
 TABLES = {
@@ -30,4 +30,6 @@ class ImportCommand(BaseCommand):
                 reader = csv.DictReader(import_csv_file)
                 model.objects.bulk_create(
                     model(**data) for data in reader)
-        self.stdout.write(self.style.SUCCESS('The data was uploaded successfully'))
+        self.stdout.write(self.style.SUCCESS(
+            'The data was uploaded successfully')
+        )

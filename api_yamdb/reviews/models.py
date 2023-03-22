@@ -21,6 +21,7 @@ RATING_CHOICES = (
 NAME_LEN = 100
 SLUG_LEN = 32
 
+
 class Genre(models.Model):
     name = models.CharField(max_length=NAME_LEN, unique=True)
     slug = models.SlugField(max_length=SLUG_LEN, unique=True, db_index=True)
