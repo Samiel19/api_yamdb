@@ -144,14 +144,14 @@ class UserViewSet(ModelViewSet):
         url_path='me',
         permission_classes=[IsAuthenticated],
     )
-    def get_me_patch(self, request):
+    def patch_me(self, request):
         username = request.user.username
         user = get_object_or_404(User, username=username)
         serializer = UserSerializer(user,
                                     data=request.data,
                                     partial=True)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        serializer.save(role=request.user.role)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
