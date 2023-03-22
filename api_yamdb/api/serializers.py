@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from django.shortcuts import get_object_or_404
 
 from api.validators import validate_username
 from api_yamdb.settings import BANNED_SYMBOLS
@@ -25,8 +26,9 @@ class ReviewSerializers(serializers.ModelSerializer):
                 self.context['request'].parser_context['kwargs']['title_id']
             )
             author = self.context['request'].user
+            title = get_object_or_404(Title, id=title_id)
             if Review.objects.filter(
-                author=author, title_id=title_id
+                author=author, title=title
             ).exists():
                 raise serializers.ValidationError(['Нельзя'])
         return data
