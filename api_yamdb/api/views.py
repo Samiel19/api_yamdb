@@ -45,7 +45,7 @@ class TitleViewSet(ModelViewSet):
 
 
 class CategoryGenreViewSet(CreateModelMixin, ListModelMixin,
-                      DestroyModelMixin, GenericViewSet):
+                           DestroyModelMixin, GenericViewSet):
     permission_classes = (AdminOrReadOnly,)
     filter_backends = (SearchFilter,)
     search_fields = ('name',)
@@ -55,7 +55,7 @@ class CategoryGenreViewSet(CreateModelMixin, ListModelMixin,
 class CategoryViewSet(CategoryGenreViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    
+
     def retrieve(self, request, *args, **kwargs):
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
