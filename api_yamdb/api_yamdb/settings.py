@@ -142,4 +142,8 @@ ROLES = [
     ('admin', 'Администратор'),
 ]
 
+DEFAUL_ROLE = 'user'
+
 ROLES_MAX_LEN = len(max(ROLES, key=lambda role: len(role[0]))[0])
+
+BANNED_SYMBOLS = r'^[\w.@+-]+$'

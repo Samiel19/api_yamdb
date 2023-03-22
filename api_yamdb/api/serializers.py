@@ -1,5 +1,7 @@
 from rest_framework import serializers
 
+from api.validators import validate_username
+from api_yamdb.settings import BANNED_SYMBOLS
 from reviews.models import (RATING_CHOICES, Category, Comment, Genre, Review,
                             Title)
 from users.models import User
@@ -42,31 +44,18 @@ class CommentSerializers(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = User
+        validators = (validate_username,)
         fields = (
             'username', 'email', 'bio', 'role', 'first_name', 'last_name',
         )
 
-    def validate(self, data):
-        if data.get('username') == 'me':
-            raise serializers.ValidationError(
-                'Имя me запрещено'
-            )
-        return data
-
-    def validate_role(self, role):
-        try:
-            if self.instance.role != 'admin':
-                return self.instance.role
-            return role
-        except AttributeError:
-            return role
-
 
 class UserAuthSerializer(serializers.Serializer):
     username = serializers.RegexField(
-        regex=r'^[\w.@+-]+$',
+        regex=BANNED_SYMBOLS,
         max_length=150,
         required=True
     )
@@ -78,20 +67,8 @@ class UserAuthSerializer(serializers.Serializer):
 
 class UserRegisterSerializer(serializers.ModelSerializer):
 
-    def validate(self, data):
-        if data['username'] == 'me':
-            raise serializers.ValidationError('me вам ещё понадобится!')
-        if User.objects.filter(username=data.get('username')).exists():
-            raise serializers.ValidationError(
-                'Такой username уже есть'
-            )
-        if User.objects.filter(email=data.get('email')).exists():
-            raise serializers.ValidationError(
-                'Такой email уже есть'
-            )
-        return data
-
     class Meta:
+        validators = (validate_username,)
         model = User
         fields = ('username', 'email')
 
