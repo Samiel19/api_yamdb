@@ -44,15 +44,18 @@ class TitleViewSet(ModelViewSet):
         return TitleWriteSerializer
 
 
-class CategoryViewSet(CreateModelMixin, ListModelMixin,
+class CategoryGenreViewSet(CreateModelMixin, ListModelMixin,
                       DestroyModelMixin, GenericViewSet):
-    queryset = Category.objects.all()
     permission_classes = (AdminOrReadOnly,)
-    serializer_class = CategorySerializer
     filter_backends = (SearchFilter,)
     search_fields = ('name',)
     lookup_field = 'slug'
 
+
+class CategoryViewSet(CategoryGenreViewSet):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    
     def retrieve(self, request, *args, **kwargs):
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
@@ -60,14 +63,9 @@ class CategoryViewSet(CreateModelMixin, ListModelMixin,
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
-class GenreViewSet(CreateModelMixin, ListModelMixin,
-                   DestroyModelMixin, GenericViewSet):
+class GenreViewSet(CategoryGenreViewSet):
     queryset = Genre.objects.all()
-    permission_classes = (AdminOrReadOnly,)
     serializer_class = GenreSerializer
-    filter_backends = (SearchFilter,)
-    search_fields = ('name',)
-    lookup_field = 'slug'
 
     def retrieve(self, request, *args, **kwargs):
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
