@@ -66,23 +66,21 @@ class Title(models.Model):
 class Review(models.Model):
     title = models.ForeignKey(Title,
                               on_delete=models.CASCADE,
-                              related_name='reviews',
                               null=True)
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='reviews',
     )
     pub_date = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
-    text = models.TextField(max_length=1024)
+    text = models.TextField()
     score = models.IntegerField(choices=RATING_CHOICES, default=1)
 
     def __str__(self):
-        return '{0}/{1} - {2}'.format(
-            self.titles.name, self.user.username, self.value)
+        return f'{self.title.name, self.author.username, self.score}'
 
     class Meta:
+        default_related_name = "reviews"
         verbose_name = "review"
         verbose_name_plural = "reviews"
         ordering = ['-pub_date']
@@ -95,7 +93,6 @@ class Comment(models.Model):
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='comments'
     )
     text = models.TextField()
     pub_date = models.DateTimeField(
@@ -106,9 +103,9 @@ class Comment(models.Model):
     review = models.ForeignKey(
         Review,
         on_delete=models.CASCADE,
-        related_name='comments'
     )
 
     class Meta:
+        default_related_name = 'comments'
         verbose_name = "comments"
         default_related_name = "comments"

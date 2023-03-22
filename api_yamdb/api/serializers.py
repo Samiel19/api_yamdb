@@ -8,7 +8,6 @@ from users.models import User
 class ReviewSerializers(serializers.ModelSerializer):
     author = serializers.StringRelatedField(
         read_only=True,
-        # slug_field='username'
     )
     score = serializers.ChoiceField(choices=RATING_CHOICES)
 
@@ -17,7 +16,6 @@ class ReviewSerializers(serializers.ModelSerializer):
 
         model = Review
         read_only_fields = ['title']
-        # unique_together = ('author', 'titles_id')
 
     def validate(self, data):
         if self.context['request'].method == 'POST':

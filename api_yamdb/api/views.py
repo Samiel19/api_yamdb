@@ -162,22 +162,14 @@ class ReviewViewSet(ModelViewSet):
     permission_classes = (IsAuthenticatedUser, IsAuthenticatedOrReadOnly,)
 
     @property
-    def get_title(self):
+    def title(self):
         return get_object_or_404(Title, id=self.kwargs.get('title_id'))
 
     def perform_create(self, serializer):
-        serializer.save(author=self.request.user, title=self.get_title)
+        serializer.save(author=self.request.user, title=self.title)
 
     def get_queryset(self):
-        return self.get_title.reviews.all()
-
-    def post(self, request, *args, **kwargs):
-        if request.method == 'POST':
-            serializer = ReviewSerializers(data=request.data)
-            if serializer.is_valid(raise_exception=True):
-                return Response(
-                    serializer.validated_data, status=status.HTTP_200_OK
-                )
+        return self.title.reviews.all()
 
 
 class CommentViewSet(ModelViewSet):
@@ -185,11 +177,11 @@ class CommentViewSet(ModelViewSet):
     permission_classes = (IsAuthenticatedUser, IsAuthenticatedOrReadOnly,)
 
     @property
-    def get_review(self):
+    def review(self):
         return get_object_or_404(Review, id=self.kwargs.get('review_id'))
 
     def perform_create(self, serializer):
-        serializer.save(author=self.request.user, review=self.get_review)
+        serializer.save(author=self.request.user, review=self.review)
 
     def get_queryset(self):
-        return self.get_review.comments.all()
+        return self.review.comments.all()
