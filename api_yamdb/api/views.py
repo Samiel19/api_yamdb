@@ -44,14 +44,17 @@ class TitleViewSet(ModelViewSet):
         return TitleWriteSerializer
 
 
-class CategoryViewSet(CreateModelMixin, ListModelMixin,
-                      DestroyModelMixin, GenericViewSet):
-    queryset = Category.objects.all()
+class CategoryGenreViewSet(CreateModelMixin, ListModelMixin,
+                           DestroyModelMixin, GenericViewSet):
     permission_classes = (AdminOrReadOnly,)
-    serializer_class = CategorySerializer
     filter_backends = (SearchFilter,)
     search_fields = ('name',)
     lookup_field = 'slug'
+
+
+class CategoryViewSet(CategoryGenreViewSet):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
 
     def retrieve(self, request, *args, **kwargs):
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
@@ -60,14 +63,9 @@ class CategoryViewSet(CreateModelMixin, ListModelMixin,
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
-class GenreViewSet(CreateModelMixin, ListModelMixin,
-                   DestroyModelMixin, GenericViewSet):
+class GenreViewSet(CategoryGenreViewSet):
     queryset = Genre.objects.all()
-    permission_classes = (AdminOrReadOnly,)
     serializer_class = GenreSerializer
-    filter_backends = (SearchFilter,)
-    search_fields = ('name',)
-    lookup_field = 'slug'
 
     def retrieve(self, request, *args, **kwargs):
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
@@ -146,14 +144,14 @@ class UserViewSet(ModelViewSet):
         url_path='me',
         permission_classes=[IsAuthenticated],
     )
-    def get_me_patch(self, request):
+    def patch_me(self, request):
         username = request.user.username
         user = get_object_or_404(User, username=username)
         serializer = UserSerializer(user,
                                     data=request.data,
                                     partial=True)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        serializer.save(role=request.user.role)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 

@@ -1,5 +1,8 @@
 from rest_framework import serializers
+from django.shortcuts import get_object_or_404
 
+from api.validators import validate_username
+from api_yamdb.settings import BANNED_SYMBOLS
 from reviews.models import (RATING_CHOICES, Category, Comment, Genre, Review,
                             Title)
 from users.models import User
@@ -23,8 +26,9 @@ class ReviewSerializers(serializers.ModelSerializer):
                 self.context['request'].parser_context['kwargs']['title_id']
             )
             author = self.context['request'].user
+            title = get_object_or_404(Title, id=title_id)
             if Review.objects.filter(
-                author=author, title_id=title_id
+                author=author, title=title
             ).exists():
                 raise serializers.ValidationError(['Нельзя'])
         return data
@@ -42,31 +46,18 @@ class CommentSerializers(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = User
+        validators = (validate_username,)
         fields = (
             'username', 'email', 'bio', 'role', 'first_name', 'last_name',
         )
 
-    def validate(self, data):
-        if data.get('username') == 'me':
-            raise serializers.ValidationError(
-                'Имя me запрещено'
-            )
-        return data
-
-    def validate_role(self, role):
-        try:
-            if self.instance.role != 'admin':
-                return self.instance.role
-            return role
-        except AttributeError:
-            return role
-
 
 class UserAuthSerializer(serializers.Serializer):
     username = serializers.RegexField(
-        regex=r'^[\w.@+-]+$',
+        regex=BANNED_SYMBOLS,
         max_length=150,
         required=True
     )
@@ -78,20 +69,8 @@ class UserAuthSerializer(serializers.Serializer):
 
 class UserRegisterSerializer(serializers.ModelSerializer):
 
-    def validate(self, data):
-        if data['username'] == 'me':
-            raise serializers.ValidationError('me вам ещё понадобится!')
-        if User.objects.filter(username=data.get('username')).exists():
-            raise serializers.ValidationError(
-                'Такой username уже есть'
-            )
-        if User.objects.filter(email=data.get('email')).exists():
-            raise serializers.ValidationError(
-                'Такой email уже есть'
-            )
-        return data
-
     class Meta:
+        validators = (validate_username,)
         model = User
         fields = ('username', 'email')
 
@@ -118,8 +97,25 @@ class TitleReadSerializer(serializers.ModelSerializer):
     rating = serializers.IntegerField(read_only=True)
 
     class Meta:
-        fields = '__all__'
         model = Title
+        fields = (
+            'id',
+            'name',
+            'genre',
+            'category',
+            'year',
+            'rating',
+            'description',
+        )
+        read_only_fields = (
+            'id',
+            'name',
+            'genre',
+            'category',
+            'year',
+            'rating',
+            'description',
+        )
 
 
 class TitleWriteSerializer(serializers.ModelSerializer):
@@ -134,5 +130,12 @@ class TitleWriteSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        fields = '__all__'
         model = Title
+        fields = (
+            'id',
+            'name',
+            'genre',
+            'category',
+            'year',
+            'description',
+        )

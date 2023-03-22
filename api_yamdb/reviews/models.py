@@ -28,7 +28,7 @@ class Genre(models.Model):
 
     class Meta:
         verbose_name = 'genre'
-        ordering = ("id",)
+        ordering = ('slug',)
 
     def __str__(self):
         return self.slug
@@ -40,7 +40,7 @@ class Category(models.Model):
 
     class Meta:
         verbose_name = 'category'
-        ordering = ("slug",)
+        ordering = ('slug',)
 
     def __str__(self):
         return self.slug
@@ -68,7 +68,7 @@ class Title(models.Model):
     class Meta:
         verbose_name = 'title'
         default_related_name = 'titles'
-        ordering = ("id",)
+        ordering = ('year',)
 
     def __str__(self):
         return self.name
