@@ -1,4 +1,7 @@
+from datetime import datetime
+
 from django.db import models
+from django.core.validators import MaxValueValidator
 
 from users.models import User
 
@@ -15,35 +18,41 @@ RATING_CHOICES = (
     (1, '1'),
 )
 
+NAME_LEN = 100
+SLUG_LEN = 32
 
 class Genre(models.Model):
-    name = models.CharField(max_length=100, unique=True)
-    slug = models.SlugField(max_length=32, unique=True, db_index=True)
+    name = models.CharField(max_length=NAME_LEN, unique=True)
+    slug = models.SlugField(max_length=SLUG_LEN, unique=True, db_index=True)
 
     class Meta:
         verbose_name = 'genre'
+        ordering = ("id",)
 
     def __str__(self):
         return self.slug
 
 
 class Category(models.Model):
-    name = models.CharField(max_length=100, unique=True)
-    slug = models.SlugField(max_length=32, unique=True, db_index=True)
+    name = models.CharField(max_length=NAME_LEN, unique=True)
+    slug = models.SlugField(max_length=SLUG_LEN, unique=True, db_index=True)
 
     class Meta:
         verbose_name = 'category'
+        ordering = ("slug",)
 
     def __str__(self):
         return self.slug
 
 
 class Title(models.Model):
-    name = models.CharField(max_length=100, db_index=True)
-    year = models.IntegerField()
+    name = models.CharField(max_length=NAME_LEN, db_index=True)
+    year = models.IntegerField(
+        blank=True,
+        validators=[MaxValueValidator(int(datetime.now().year))]
+    )
     genre = models.ManyToManyField(
         Genre,
-        related_name='titles',
         verbose_name='genre',
     )
     category = models.ForeignKey(
@@ -51,13 +60,14 @@ class Title(models.Model):
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
-        related_name='titles',
         verbose_name='category',
     )
-    description = models.TextField(max_length=300, null=True, blank=True)
+    description = models.TextField(null=True, blank=True)
 
     class Meta:
         verbose_name = 'title'
+        default_related_name = 'titles'
+        ordering = ("id",)
 
     def __str__(self):
         return self.name
