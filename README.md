@@ -12,11 +12,12 @@
 ## Участники проекта
     Разработка проводилась командой из трёх разработчиков, обучающихся на практикуме (команда 62).
     Сслыки на github:
-    https://github.com/Samiel19
+    
+    [Anton Sadagov](https://github.com/Samiel19)
 
-    https://github.com/DimaLaptev
+    [Shipilov Dmitriy](https://github.com/DimaLaptev)
 
-    https://github.com/Besprozvanov
+    [Alexandr Besprozvanov](https://github.com/Besprozvanov)
 
 
 ## Использованные технологии и особенности приложения
