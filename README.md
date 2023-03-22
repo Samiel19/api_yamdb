@@ -10,14 +10,15 @@
 Пользователи могут оставлять комментарии к отзывам.
 
 ## Участники проекта
-    Разработка проводилась командой из трёх разработчиков, обучающихся на практикуме (команда 62).
-    Сслыки на github:
-    
-    [Anton Sadagov](https://github.com/Samiel19)
+Разработка проводилась командой из трёх разработчиков, обучающихся на практикуме (команда 62).
 
-    [Shipilov Dmitriy](https://github.com/DimaLaptev)
+Сслыки на github:
 
-    [Alexandr Besprozvanov](https://github.com/Besprozvanov)
+[Anton Sadagov](https://github.com/Samiel19)
+
+[Shipilov Dmitriy](https://github.com/DimaLaptev)
+
+[Alexandr Besprozvanov](https://github.com/Besprozvanov)
 
 
 ## Использованные технологии и особенности приложения
